@@ -5,7 +5,7 @@ import random
 pygame.init()
 
 
-class GameInformation:
+class GameInformation: #gives us the game information
     def __init__(self, left_hits, right_hits, left_score, right_score):
         self.left_hits = left_hits
         self.right_hits = right_hits
@@ -99,7 +99,7 @@ class Game:
                     ball.y_vel = -1 * y_vel
                     self.right_hits += 1
 
-    def draw(self, draw_score=True, draw_hits=False):
+    def draw(self, draw_score=True, draw_hits=False): #draws the game
         self.window.fill(self.BLACK)
 
         self._draw_divider()
