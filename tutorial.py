@@ -2,35 +2,51 @@ import pygame
 from pong import Game
 import neat
 import os
-
+import pickle
 
 class PongGame:
     def __init__(self, window, width, height):
-        self. game = Game(window, width, height)
+        self.game = Game(window, width, height)
         #getting information for AI
         self.left_paddle = self.game.left_paddle
         self.right_paddle = self.game.right_paddle
         self.ball = self.game.ball
 
-    def test_ai(self):
+    def test_ai(self, genome, config):
+        net = neat.nn.FeedForwardNetwork.create(genome, config)
+        
         run = True
         clock = pygame.time.Clock()
+        
         while run:
             clock.tick(60)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
                     break
+            
+            #human player
             keys = pygame.key.get_pressed()
             
             if keys[pygame.K_w]:
-                game.move_paddle(left = True, up = True)
+                self.game.move_paddle(left = True, up = True)
             if keys[pygame.K_s]:
-                game.move_paddle(left = True, up = False)
+                self.game.move_paddle(left = True, up = False)
             
+
+            #AI
+            output = net.activate((self.right_paddle.y, self.ball.y, abs(self.right_paddle.x - self.ball.x)))
+            decision = output.index(max(output))
             
-            game.loop()
-            game.draw()
+            if decision == 0:
+                pass
+            elif decision == 1:
+                self.game.move_paddle(left=False, up=True)
+            else:
+                self.game.move_paddle(left=False, up=False)
+
+            game_info = self.game.loop()
+            self.game.draw()
             pygame.display.update()
 
         pygame.quit()
@@ -110,15 +126,27 @@ def eval_genomes(genomes, eval): #fitness function
             force_quit = game.train_ai(genome1, genome2, config)
 
 def run_neat(config):
-    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-8') #reloads a population checkpoint
-    # p = neat.Population(config)
+    # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-8') #reloads a population checkpoint
+    p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1)) #saves a checkpoint after a number (here: 1) of generations
 
     winner = p.run(eval_genomes, 10)
+    #saving the winner
+    with open("best.pickle", "wb") as f:
+        pickle.dump(winner, f)
 
+def test_ai(config):
+    with open("best.pickle", "rb") as f:
+        winner = pickle.load(f)
+    
+    width, height = 700, 500
+    window = pygame.display.set_mode((width, height))
+
+    game = PongGame(window, width, height)
+    game.test_ai(winner, config)
 
 
 if __name__ == "__main__":
@@ -129,4 +157,5 @@ if __name__ == "__main__":
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_path)
     
-    run_neat(config)
+    # run_neat(config)
+    test_ai(config)
