@@ -126,14 +126,14 @@ def eval_genomes(genomes, eval): #fitness function
             force_quit = game.train_ai(genome1, genome2, config)
 
 def run_neat(config):
-    # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-8') #reloads a population checkpoint
-    p = neat.Population(config)
+    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-10') #reloads a population checkpoint
+    # p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(1)) #saves a checkpoint after a number (here: 1) of generations
 
-    winner = p.run(eval_genomes, 10)
+    winner = p.run(eval_genomes, 5)
     #saving the winner
     with open("best.pickle", "wb") as f:
         pickle.dump(winner, f)
